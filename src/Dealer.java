@@ -11,23 +11,40 @@ import java.io.IOException;
 public class Dealer extends JPanel {
     private BufferedImage image;
     public int potSize;
+    public int highestBet;
+    private JLabel potLabel;
 
     public Dealer (String filePath) throws IOException {
-        potSize = 0;
-        image = ImageIO.read(new File(filePath));
+        this.potSize = 0;
+        this.highestBet = 0;
+        this.image = ImageIO.read(new File(filePath));
 
         setLayout(new GridBagLayout());
 
 
         // add pot to panel
-        JLabel potLabel = new JLabel("Pot \n" + potSize + "");
-        potLabel.setFont(new Font ("Helvetica", Font.BOLD, 20));
-        potLabel.setForeground(Color.ORANGE);
-        add(potLabel);
+        this.potLabel = new JLabel("Pot \n" + this.potSize);
+        this.potLabel.setFont(new Font ("Helvetica", Font.BOLD, 20));
+        this.potLabel.setForeground(Color.ORANGE);
+        add(this.potLabel);
     }
 
     public void paintComponent(Graphics g) {
         // create background
         g.drawImage(image, 0, 0, null);
+    }
+
+    public void addPot(int change){
+        this.potSize += change;
+        this.potLabel.setText("Pot \n" + potSize);
+    }
+
+    public void setHighestBet(int bet){
+        this.highestBet = bet;
+    }
+
+    public void resetPot(){
+        this.potSize = 0;
+        this.potLabel.setText("Pot \n" + potSize);
     }
 }

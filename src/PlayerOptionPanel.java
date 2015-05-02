@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 /**
  * Created by brookeside on 5/1/15.
@@ -13,7 +14,12 @@ public class PlayerOptionPanel extends JPanel {
     JPanel buttons = new JPanel();
     JPanel betting = new JPanel();
 
-    public PlayerOptionPanel(){
+    public PlayerOptionPanel(ActionListener buttonListener){
+        checkButton.addActionListener(buttonListener);
+        foldButton.addActionListener(buttonListener);
+        callButton.addActionListener(buttonListener);
+        betButton.addActionListener(buttonListener);
+
         buttons.setLayout(new GridLayout(2, 2));
         buttons.add(checkButton);
         buttons.add(foldButton);

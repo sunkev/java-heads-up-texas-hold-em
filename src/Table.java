@@ -4,6 +4,8 @@
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 
 public class Table extends JFrame   {
@@ -14,6 +16,12 @@ public class Table extends JFrame   {
     private Deck deck;
     private Hand playerHand;
     private Hand computerHand;
+    private JPanel playerOptions = new PlayerOptionPanel(new ButtonListener());
+    public Turn turn;
+
+    public enum Turn {
+        PREFLOP, FLOP, TURN, RIVER
+    }
 
     public Table() throws IOException{
         setTitle("Texas Hold'em");
@@ -29,9 +37,9 @@ public class Table extends JFrame   {
     }
 
     public void createPlayers() throws IOException {
-        player = new Player("Player", "left_side.jpg");
-        computer = new Player("Computer", "right_side.jpg");
         dealer = new Dealer("middle.jpg");
+        player = new Player("Player", "left_side.jpg", dealer);
+        computer = new Player("Computer", "right_side.jpg", dealer);
 
         this.grid.add(player);
         this.grid.add(dealer);
@@ -48,12 +56,13 @@ public class Table extends JFrame   {
 
     public void startGame() {
 //        while (!player.bankrupt() && !computer.bankrupt()){
-            preflop();
+        startRound();
 //        }
     }
 
-    public void preflop() {
+    public void startRound() {
         this.deck = new Deck();
+        this.turn = Turn.PREFLOP;
 
         playerHand = new Hand(this.deck.pop(), this.deck.pop(), true);
         computerHand = new Hand(this.deck.pop(), this.deck.pop(), false);
@@ -72,7 +81,48 @@ public class Table extends JFrame   {
         this.grid.remove(3);
 
         this.grid.add(playerHand);
-        this.grid.add(new PlayerOptionPanel());
+        this.grid.add(playerOptions);
         this.grid.add(computerHand);
+    }
+
+    class ButtonListener implements ActionListener
+    {
+        public void actionPerformed (ActionEvent e)
+        {
+            switch(e.getActionCommand()){
+                case "Check":
+                    break;
+                case "Bet":
+                    player.bet(100); computer.computerTurn(); break;
+                case "Call":
+                    player.call(); computer.computerTurn();
+                    break;
+                case "Fold":
+                    player.fold();
+                    break;
+                default:
+                    System.out.println("YO");
+                    break;
+            }
+
+            // if players done, go to next turn
+            if (Player.playersDone) {
+                switch (turn) {
+                    case PREFLOP:
+                        turn = Turn.FLOP;
+                        break;
+                    case FLOP:
+                        turn = Turn.TURN;
+                        break;
+                    case TURN:
+                        turn = Turn.RIVER;
+                        break;
+                    case RIVER:
+                        startRound();
+                        break;
+                }
+            }
+
+        }
     }
 }
