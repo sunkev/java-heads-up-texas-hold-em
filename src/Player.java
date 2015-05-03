@@ -139,4 +139,17 @@ public class Player extends JPanel {
     public void setHand(Hand hand){
         this.hand = hand;
     }
+
+    public void addCard(Card card){
+        this.hand.addCard(card);
+    }
+
+    public Enum evaluatedHand()
+    {
+        return new HandEvaluator(this.hand).calculate();
+    }
+
+    public void revealHand(){
+        this.hand.revealHand();
+    }
 }

@@ -63,6 +63,7 @@ public class Table extends JFrame   {
     public void startRound() {
         this.deck = new Deck();
         this.turn = Turn.PREFLOP;
+        this.dealer.resetCommunityCards();
 
         playerHand = new Hand(this.deck.pop(), this.deck.pop(), true);
         computerHand = new Hand(this.deck.pop(), this.deck.pop(), false);
@@ -110,19 +111,44 @@ public class Table extends JFrame   {
                 switch (turn) {
                     case PREFLOP:
                         turn = Turn.FLOP;
-                        dealer.addCommunityCard(deck.pop());
-                        dealer.addCommunityCard(deck.pop());
-                        dealer.addCommunityCard(deck.pop());
+
+                        Card card1 = deck.pop();
+                        Card card2 = deck.pop();
+                        Card card3 = deck.pop();
+
+                        dealer.addCommunityCard(card1);
+                        dealer.addCommunityCard(card2);
+                        dealer.addCommunityCard(card3);
+
+                        player.addCard(card1);
+                        player.addCard(card2);
+                        player.addCard(card3);
+
+                        computer.addCard(card1);
+                        computer.addCard(card1);
+                        computer.addCard(card1);
                         break;
                     case FLOP:
-                        dealer.addCommunityCard(deck.pop());
+                        Card card4 = deck.pop();
+                        dealer.addCommunityCard(card4);
+                        player.addCard(card4);
+                        computer.addCard(card4);
+
                         turn = Turn.TURN;
                         break;
                     case TURN:
-                        dealer.addCommunityCard(deck.pop());
+                        Card card5 = deck.pop();
+                        dealer.addCommunityCard(card5);
+                        player.addCard(card5);
+                        computer.addCard(card5);
+
                         turn = Turn.RIVER;
+                        computer.revealHand();
                         break;
                     case RIVER:
+                        System.out.println("Player " + player.evaluatedHand());
+                        System.out.println("Computer " + computer.evaluatedHand());
+
                         startRound();
                         break;
                 }

@@ -56,6 +56,10 @@ public class Dealer extends JPanel {
         this.communityCards.setText(text + " " + card);
     }
 
+    public void resetCommunityCards(){
+        this.communityCards.setText("");
+    }
+
     public void resetPot(){
         this.potSize = 0;
         this.potLabel.setText("Pot \n" + potSize);

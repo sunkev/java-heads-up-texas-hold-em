@@ -56,6 +56,10 @@ public class Hand extends JPanel{
         add(startingHand);
     }
 
+    public void revealHand(){
+        startingHand.setText(card1 + " " + card2);
+    }
+
     public Card[] handArray(){
         return hand.toArray(new Card[hand.size()]);
     }
