@@ -13,13 +13,14 @@ public class Dealer extends JPanel {
     public int potSize;
     public int highestBet;
     private JLabel potLabel;
+    private JLabel communityCards;
 
     public Dealer (String filePath) throws IOException {
         this.potSize = 0;
         this.highestBet = 0;
         this.image = ImageIO.read(new File(filePath));
 
-        setLayout(new GridBagLayout());
+        setLayout(new GridLayout(2,0));
 
 
         // add pot to panel
@@ -27,6 +28,13 @@ public class Dealer extends JPanel {
         this.potLabel.setFont(new Font ("Helvetica", Font.BOLD, 20));
         this.potLabel.setForeground(Color.ORANGE);
         add(this.potLabel);
+
+        // add community cards to panel
+        this.communityCards = new JLabel();
+        this.communityCards.setFont(new Font ("Helvetica", Font.BOLD, 13));
+        this.communityCards.setForeground(Color.ORANGE);
+        this.communityCards.setHorizontalAlignment(JLabel.CENTER);
+        add(this.communityCards);
     }
 
     public void paintComponent(Graphics g) {
@@ -41,6 +49,11 @@ public class Dealer extends JPanel {
 
     public void setHighestBet(int bet){
         this.highestBet = bet;
+    }
+
+    public void addCommunityCard(Card card){
+        String text = this.communityCards.getText();
+        this.communityCards.setText(text + " " + card);
     }
 
     public void resetPot(){

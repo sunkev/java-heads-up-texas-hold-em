@@ -6,8 +6,8 @@ import java.util.List;
  * Created by brookeside on 4/30/15.
  */
 public class Deck {
-    private final String[] SUITS = {"♠", "♣", "♥", "♦"};
-    private final String[] VALUES = {"2", "3", "4", "5", "6",
+    private static final String[] SUITS = {"♠", "♣", "♥", "♦"};
+    public static final String[] VALUES = {"2", "3", "4", "5", "6",
             "7", "8", "9", "10", "J", "Q", "K", "A"};
     private Card[] deck;
 

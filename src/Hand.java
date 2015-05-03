@@ -55,4 +55,8 @@ public class Hand extends JPanel{
         startingHand.setForeground(Color.BLACK);
         add(startingHand);
     }
+
+    public Card[] handArray(){
+        return hand.toArray(new Card[hand.size()]);
+    }
 }

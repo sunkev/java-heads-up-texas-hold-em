@@ -9,14 +9,16 @@ import java.io.IOException;
  * Created by brookeside on 4/30/15.
  */
 public class Player extends JPanel {
+    private int currentBet;
     private BufferedImage image;
     private String name;
     private Hand hand;
     private int bankroll;
-    private JLabel bankrollLabel;
-    private int currentBet;
     public Boolean loser;
     public Dealer dealer;
+    private JLabel betLabel;
+    private JLabel bankrollLabel;
+    private JLabel nameLabel;
 
     public static boolean playersDone = false;
 
@@ -28,10 +30,10 @@ public class Player extends JPanel {
         this.currentBet = 0;
         this.loser = true;
 
-        setLayout(new GridBagLayout());
+        setLayout(new GridLayout(3,0));
 
         setDimensions();
-        addBankrollLabel();
+        initLabels();
     }
 
     private void setDimensions() {
@@ -42,11 +44,29 @@ public class Player extends JPanel {
         setSize(size);
     }
 
-    private void addBankrollLabel(){
-        bankrollLabel = new JLabel(name + " " + bankroll);
-        bankrollLabel.setFont(new Font ("Helvetica", Font.BOLD, 20));
+    private void initLabels(){
+
+        nameLabel = new JLabel(name);
+        nameLabel.setFont(new Font ("Helvetica", Font.BOLD, 15));
+        nameLabel.setForeground(Color.ORANGE);
+        nameLabel.setHorizontalAlignment(JLabel.CENTER);
+
+        bankrollLabel = new JLabel();
+        bankrollLabel.setFont(new Font("Helvetica", Font.BOLD, 15));
         bankrollLabel.setForeground(Color.ORANGE);
+        bankrollLabel.setHorizontalAlignment(JLabel.CENTER);
+
+        betLabel = new JLabel();
+        betLabel.setFont(new Font("Helvetica", Font.BOLD, 15));
+        betLabel.setForeground(Color.ORANGE);
+        betLabel.setHorizontalAlignment(JLabel.CENTER);
+
+        refreshBankrollText();
+
+        add(nameLabel);
         add(bankrollLabel);
+        add(betLabel);
+
     }
 
     public void computerTurn(){
@@ -108,7 +128,8 @@ public class Player extends JPanel {
     }
 
     public void refreshBankrollText(){
-        this.bankrollLabel.setText(name + " " + bankroll);
+        this.bankrollLabel.setText("Bankroll: " + bankroll);
+        this.betLabel.setText("Bet: " + currentBet);
     }
 
     public boolean bankrupt(){

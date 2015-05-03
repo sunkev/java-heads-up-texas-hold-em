@@ -110,11 +110,16 @@ public class Table extends JFrame   {
                 switch (turn) {
                     case PREFLOP:
                         turn = Turn.FLOP;
+                        dealer.addCommunityCard(deck.pop());
+                        dealer.addCommunityCard(deck.pop());
+                        dealer.addCommunityCard(deck.pop());
                         break;
                     case FLOP:
+                        dealer.addCommunityCard(deck.pop());
                         turn = Turn.TURN;
                         break;
                     case TURN:
+                        dealer.addCommunityCard(deck.pop());
                         turn = Turn.RIVER;
                         break;
                     case RIVER:
