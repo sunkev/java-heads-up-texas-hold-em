@@ -12,18 +12,15 @@ public class Hand extends JPanel{
     private JLabel startingHand;
     private Card card1;
     private Card card2;
-    private Boolean isPlayer;
 
-    public Hand(Card card1, Card card2, Boolean isPlayer){
+    public Hand(Card card1, Card card2){
         this.hand = new ArrayList<Card>();
         this.card1 = card1;
         this.card2 = card2;
         this.hand.add(card1);
         this.hand.add(card2);
-        this.isPlayer = isPlayer;
 
         setLayout(new GridBagLayout());
-        addStartingCardsToTable();
     }
 
     public String[] addCard(Card card){
@@ -41,7 +38,7 @@ public class Hand extends JPanel{
         return result;
     }
 
-    public void addStartingCardsToTable(){
+    public void addStartingCardsToTable(boolean isPlayer){
         if (isPlayer)
         {
             startingHand = new JLabel(card1 + " " + card2);

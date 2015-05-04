@@ -20,13 +20,20 @@ public class Dealer extends JPanel {
         this.highestBet = 0;
         this.image = ImageIO.read(new File(filePath));
 
-        setLayout(new GridLayout(2,0));
+        setLayout(new GridLayout(3,0));
 
+        addLabelsToTable();
+
+    }
+
+    public void addLabelsToTable(){
+        add(new JLabel());
 
         // add pot to panel
         this.potLabel = new JLabel("Pot \n" + this.potSize);
         this.potLabel.setFont(new Font ("Helvetica", Font.BOLD, 20));
         this.potLabel.setForeground(Color.ORANGE);
+        this.potLabel.setHorizontalAlignment(JLabel.CENTER);
         add(this.potLabel);
 
         // add community cards to panel
@@ -35,11 +42,6 @@ public class Dealer extends JPanel {
         this.communityCards.setForeground(Color.ORANGE);
         this.communityCards.setHorizontalAlignment(JLabel.CENTER);
         add(this.communityCards);
-    }
-
-    public void paintComponent(Graphics g) {
-        // create background
-        g.drawImage(image, 0, 0, null);
     }
 
     public void addPot(int change){
@@ -63,5 +65,10 @@ public class Dealer extends JPanel {
     public void resetPot(){
         this.potSize = 0;
         this.potLabel.setText("Pot \n" + potSize);
+    }
+
+    public void paintComponent(Graphics g) {
+        // create background
+        g.drawImage(image, 0, 0, null);
     }
 }

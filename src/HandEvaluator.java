@@ -21,7 +21,7 @@ public class HandEvaluator {
         this.suits = countSuits();
     }
 
-    public Enum calculate(){
+    public Enum calculateHand(){
         if(isRoyalFlush())
         {
             return RESULTS.ROYAL_FLUSH;
@@ -63,6 +63,10 @@ public class HandEvaluator {
             return RESULTS.ONE_OF_A_KIND;
         }
 
+    }
+
+    public int rankOfHand(){
+        return RESULTS.valueOf(calculateHand().toString()).ordinal();
     }
 
     public Map<String, Integer> countSuits(){

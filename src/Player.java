@@ -19,6 +19,7 @@ public class Player extends JPanel {
     private JLabel betLabel;
     private JLabel bankrollLabel;
     private JLabel nameLabel;
+    private Boolean isPlayer;
 
     public static boolean playersDone = false;
 
@@ -29,6 +30,7 @@ public class Player extends JPanel {
         this.dealer = dealer;
         this.currentBet = 0;
         this.loser = true;
+        this.isPlayer = (this.name.equals("Player"));
 
         setLayout(new GridLayout(3,0));
 
@@ -45,28 +47,21 @@ public class Player extends JPanel {
     }
 
     private void initLabels(){
-
         nameLabel = new JLabel(name);
-        nameLabel.setFont(new Font ("Helvetica", Font.BOLD, 15));
-        nameLabel.setForeground(Color.ORANGE);
-        nameLabel.setHorizontalAlignment(JLabel.CENTER);
-
         bankrollLabel = new JLabel();
-        bankrollLabel.setFont(new Font("Helvetica", Font.BOLD, 15));
-        bankrollLabel.setForeground(Color.ORANGE);
-        bankrollLabel.setHorizontalAlignment(JLabel.CENTER);
-
         betLabel = new JLabel();
-        betLabel.setFont(new Font("Helvetica", Font.BOLD, 15));
-        betLabel.setForeground(Color.ORANGE);
-        betLabel.setHorizontalAlignment(JLabel.CENTER);
+
+        JLabel[] labels = {nameLabel, bankrollLabel, betLabel};
+
+        for (JLabel label: labels)
+        {
+            label.setFont(new Font ("Helvetica", Font.BOLD, 15));
+            label.setForeground(Color.ORANGE);
+            label.setHorizontalAlignment(JLabel.CENTER);
+            add(label);
+        }
 
         refreshBankrollText();
-
-        add(nameLabel);
-        add(bankrollLabel);
-        add(betLabel);
-
     }
 
     public void computerTurn(){
@@ -97,6 +92,7 @@ public class Player extends JPanel {
         this.bankroll -= amount;
         this.dealer.setHighestBet(this.currentBet);
         this.dealer.addPot(amount);
+        Game.log.add(new JLabel(name + " bets " + amount));
         refreshBankrollText();
     }
 
@@ -106,6 +102,8 @@ public class Player extends JPanel {
         this.currentBet += amount;
         this.dealer.setHighestBet(this.currentBet);
         this.dealer.addPot(amount);
+
+        Game.log.add(new JLabel(name + " bets " + amount));
         refreshBankrollText();
     }
 
@@ -114,11 +112,15 @@ public class Player extends JPanel {
         this.currentBet += amount;
         this.dealer.addPot(amount);
         refreshBankrollText();
+
+        Game.log.add(new JLabel(name + " calls " + amount));
         playersDone = true;
     }
 
     public void fold(){
         playersDone = true;
+
+        Game.log.add(new JLabel(name + " folds"));
         this.loser = true;
     }
 
@@ -138,6 +140,7 @@ public class Player extends JPanel {
 
     public void setHand(Hand hand){
         this.hand = hand;
+        this.hand.addStartingCardsToTable(this.isPlayer);
     }
 
     public void addCard(Card card){
@@ -146,7 +149,12 @@ public class Player extends JPanel {
 
     public Enum evaluatedHand()
     {
-        return new HandEvaluator(this.hand).calculate();
+        return new HandEvaluator(this.hand).calculateHand();
+    }
+
+    public int handScore()
+    {
+        return new HandEvaluator(this.hand).rankOfHand();
     }
 
     public void revealHand(){
