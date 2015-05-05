@@ -11,6 +11,8 @@ import java.io.IOException;
 public class Game extends JFrame   {
     public Player player;
     public Player computer;
+    public Player[] players;
+
     public Dealer dealer;
     public JPanel table;
     private Deck deck;
@@ -18,10 +20,12 @@ public class Game extends JFrame   {
     private Hand computerHand;
     public PlayerOptionPanel playerOptions;
     public Turn turn;
-    public static JPanel log;
+    private static JPanel log = new JPanel();
+    private JPanel previousLog;
+    private boolean gameOver;
 
     public enum Turn {
-        PREFLOP, FLOP, TURN, RIVER
+        PREFLOP, FLOP, TURN, RIVER, SUMMARY
     }
 
     public static void main(String[] args) throws IOException {
@@ -43,11 +47,12 @@ public class Game extends JFrame   {
 
     public void createPlayers() throws IOException {
         dealer = new Dealer("middle.jpg");
+
         player = new Player("Player", "left_side.jpg", dealer);
         computer = new Player("Computer", "right_side.jpg", dealer);
-        log = new JPanel();
+        players = new Player[]{player, computer};
+
         playerOptions = new PlayerOptionPanel(new ButtonListener());
-        log.setLayout(new BoxLayout(log, BoxLayout.PAGE_AXIS));
 
         this.table.add(player);
         this.table.add(dealer);
@@ -67,22 +72,22 @@ public class Game extends JFrame   {
     }
 
     public void startRound() {
+
+        previousLog = log;
+        log = new JPanel();
+        log.setLayout(new BoxLayout(log, BoxLayout.PAGE_AXIS));
+        // reset the deck, turn and dealer community cards
         this.deck = new Deck();
         this.turn = Turn.PREFLOP;
         this.dealer.resetCommunityCards();
 
+        // give players new hands
         playerHand = new Hand(this.deck.pop(), this.deck.pop());
         computerHand = new Hand(this.deck.pop(), this.deck.pop());
 
         player.setHand(playerHand);
         computer.setHand(computerHand);
 
-        addHandsToTable();
-//        player.turn();
-//        computer.turn();
-    }
-
-    private void addHandsToTable(){
         this.table.remove(7);
         this.table.remove(6);
         this.table.remove(5);
@@ -92,95 +97,192 @@ public class Game extends JFrame   {
         this.table.add(playerHand);
         this.table.add(playerOptions);
         this.table.add(computerHand);
-        this.table.add(new JPanel());
+        this.table.add(previousLog);
         this.table.add(log);
+//        player.turn();
+//        computer.turn();
 
-        log.add(new JLabel("Round starts"));
+        this.gameOver = false;
+    }
 
+
+    static public void addToLog(String text){
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Helvetica", Font.PLAIN, 10));
+        log.add(label);
+    }
+
+    public void resetTurn(){
+        for(Player x: this.players)
+        {
+            x.resetCurrentBet();
+            x.isOutOfGame = false;
+            x.refreshBankrollText();
+        }
+//        this.dealer.resetPot();
+        this.dealer.resetHighestBet();
+        this.dealer.refreshPotText();
+    }
+
+    public void checkNoShowdownWin(){
+        // if everyone folded
+        int playerCount = this.players.length;
+        int playersOut = 0;
+        Player winner = this.player;
+
+        for(Player x: this.players)
+        {
+            if (x.isOutOfGame)
+            {
+                playersOut += 1;
+            }
+            else {
+                winner = x;
+            }
+        }
+
+        System.out.println(playerCount);
+        System.out.println(playersOut);
+
+        if (playersOut == playerCount - 1)
+        {
+            winner.addWinnings(this.dealer.potSize);
+            this.gameOver = true;
+        }
+    }
+
+    public void showDown(){
+        int playerScore = player.handScore();
+        int computerScore = computer.handScore();
+
+        Game.addToLog("Player has a " + player.evaluatedHand());
+        Game.addToLog("Computer has a " + computer.evaluatedHand());
+
+        if (playerScore == computerScore)
+        {
+            player.addWinnings(this.dealer.potSize/2);
+            computer.addWinnings(this.dealer.potSize/2);
+            Game.addToLog("Tie");
+        }
+        else if (playerScore >= computerScore)
+        {
+            player.addWinnings(this.dealer.potSize/2);
+            Game.addToLog("Player wins");
+        }
+        else
+        {
+            computer.addWinnings(this.dealer.potSize/2);
+            Game.addToLog("Computer wins");
+        }
+
+        this.gameOver = true;
     }
 
     class ButtonListener implements ActionListener
     {
         public void actionPerformed (ActionEvent e)
         {
+            if (turn == Turn.SUMMARY){
+                resetTurn();
+                startRound();
+                return;
+            }
+
             switch(e.getActionCommand()){
                 case "Check":
+                    computer.computerTurn();
+                    checkNoShowdownWin();
                     break;
                 case "Bet":
-                    player.bet(playerOptions.betFieldNumber()); computer.computerTurn(); break;
+                    player.bet(playerOptions.betFieldNumber());
+                    computer.computerTurn();
+                    checkNoShowdownWin();
+                    break;
                 case "Call":
-                    player.call(); computer.computerTurn();
+                    player.call();
+                    checkNoShowdownWin();
                     break;
                 case "Fold":
                     player.fold();
+                    checkNoShowdownWin();
                     break;
                 default:
-                    System.out.println("YO");
+                    System.out.println("Not working");
                     break;
             }
 
+            if (gameOver)
+            {
+                turn = Turn.RIVER;
+            }
+
             // if players done, go to next turn
-            if (Player.playersDone) {
-                switch (turn) {
-                    case PREFLOP:
-                        turn = Turn.FLOP;
+            switch (turn) {
+                case PREFLOP:
+                    resetTurn();
+                    turn = Turn.FLOP;
 
-                        Card card1 = deck.pop();
-                        Card card2 = deck.pop();
-                        Card card3 = deck.pop();
+                    Card card1 = deck.pop();
+                    Card card2 = deck.pop();
+                    Card card3 = deck.pop();
 
-                        dealer.addCommunityCard(card1);
-                        dealer.addCommunityCard(card2);
-                        dealer.addCommunityCard(card3);
+                    dealer.addCommunityCard(card1);
+                    dealer.addCommunityCard(card2);
+                    dealer.addCommunityCard(card3);
 
-                        player.addCard(card1);
-                        player.addCard(card2);
-                        player.addCard(card3);
+                    player.addCard(card1);
+                    player.addCard(card2);
+                    player.addCard(card3);
 
-                        computer.addCard(card1);
-                        computer.addCard(card2);
-                        computer.addCard(card3);
-                        break;
-                    case FLOP:
-                        Card card4 = deck.pop();
-                        dealer.addCommunityCard(card4);
-                        player.addCard(card4);
-                        computer.addCard(card4);
+                    computer.addCard(card1);
+                    computer.addCard(card2);
+                    computer.addCard(card3);
+                    break;
+                case FLOP:
+                    resetTurn();
+                    Card card4 = deck.pop();
+                    dealer.addCommunityCard(card4);
+                    player.addCard(card4);
+                    computer.addCard(card4);
 
-                        turn = Turn.TURN;
-                        break;
-                    case TURN:
-                        Card card5 = deck.pop();
-                        dealer.addCommunityCard(card5);
-                        player.addCard(card5);
-                        computer.addCard(card5);
+                    turn = Turn.TURN;
+                    break;
+                case TURN:
+                    resetTurn();
+                    Card card5 = deck.pop();
+                    dealer.addCommunityCard(card5);
+                    player.addCard(card5);
+                    computer.addCard(card5);
 
-                        turn = Turn.RIVER;
-                        computer.revealHand();
-                        break;
-                    case RIVER:
-                        System.out.println("Player " + player.evaluatedHand());
-                        System.out.println("Computer " + computer.evaluatedHand());
+                    turn = Turn.RIVER;
+                    computer.revealHand();
 
-                        int playerScore = player.handScore();
-                        int computerScore = computer.handScore();
+                    break;
+                case RIVER:
+                    resetTurn();
+                    showDown();
+//                        Game.addToLog("Player has a " + player.evaluatedHand());
+//                        Game.addToLog("Computer has a " + computer.evaluatedHand());
 
-                        if (playerScore == computerScore)
-                        {
-                            System.out.println("Tie");
-                        }
-                        else if (playerScore >= computerScore)
-                        {
-                            System.out.println("Player wins");
-                        }
-                        else
-                        {
-                            System.out.println("Computer wins");
-                        }
+//                        int playerScore = player.handScore();
+//                        int computerScore = computer.handScore();
+//
+//                        if (playerScore == computerScore)
+//                        {
+//                            Game.addToLog("Tie");
+//                        }
+//                        else if (playerScore >= computerScore)
+//                        {
+//                            Game.addToLog("Player wins");
+//                        }
+//                        else
+//                        {
+//                            Game.addToLog("Computer wins");
+//                        }
 
-                        startRound();
-                        break;
-                }
+                    Game.addToLog("Click any button for new game");
+                    turn = Turn.SUMMARY;
+                    break;
             }
 
         }

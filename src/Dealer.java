@@ -23,7 +23,6 @@ public class Dealer extends JPanel {
         setLayout(new GridLayout(3,0));
 
         addLabelsToTable();
-
     }
 
     public void addLabelsToTable(){
@@ -53,6 +52,14 @@ public class Dealer extends JPanel {
         this.highestBet = bet;
     }
 
+    public void resetHighestBet(){
+        this.highestBet = 0;
+    }
+
+    public void refreshPotText(){
+        this.potLabel.setText("Pot \n" + potSize);
+    }
+
     public void addCommunityCard(Card card){
         String text = this.communityCards.getText();
         this.communityCards.setText(text + " " + card);
@@ -62,10 +69,10 @@ public class Dealer extends JPanel {
         this.communityCards.setText("");
     }
 
-    public void resetPot(){
-        this.potSize = 0;
-        this.potLabel.setText("Pot \n" + potSize);
-    }
+//    public void resetPot(){
+//        this.potSize = 0;
+//        this.potLabel.setText("Pot \n" + potSize);
+//    }
 
     public void paintComponent(Graphics g) {
         // create background

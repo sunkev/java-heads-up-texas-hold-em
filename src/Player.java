@@ -12,16 +12,17 @@ public class Player extends JPanel {
     private int currentBet;
     private BufferedImage image;
     private String name;
-    private Hand hand;
+    public Hand hand;
     private int bankroll;
-    public Boolean loser;
     public Dealer dealer;
     private JLabel betLabel;
     private JLabel bankrollLabel;
     private JLabel nameLabel;
     private Boolean isPlayer;
 
-    public static boolean playersDone = false;
+
+    public boolean isOutOfGame = false;
+
 
     public Player(String name, String filePath, Dealer dealer) throws IOException {
         this.name = name;
@@ -29,7 +30,6 @@ public class Player extends JPanel {
         this.image = ImageIO.read(new File(filePath));
         this.dealer = dealer;
         this.currentBet = 0;
-        this.loser = true;
         this.isPlayer = (this.name.equals("Player"));
 
         setLayout(new GridLayout(3,0));
@@ -65,63 +65,83 @@ public class Player extends JPanel {
     }
 
     public void computerTurn(){
-        double d = Math.random();
-        if (d <.20)
-        {
+        double rand = Math.random();
+        double strengthOfHand = (rand*(handScore() + 1))/2;
+
+        if (bankrupt()){
             check();
-        } else if(d >= .20 && d < .40)
-        {
-//            call();
-            bet();
-        } else if (d >= .40 && d < .60)
-        {
-            bet();
+        }
+
+        if(canCheck()){
+            if (strengthOfHand <.50)
+            {
+                check();
+            }
+            else if(strengthOfHand >= .50)
+            {
+                bet();
+            }
         }
         else
         {
-            fold();
+            if (strengthOfHand <.30)
+            {
+                fold();
+            }
+            else if(strengthOfHand >= .30 && strengthOfHand < 2.0)
+            {
+                call();
+            }
+            else
+            {
+                bet((int) (rand * this.dealer.highestBet));
+            }
         }
     }
 
-    public void check(){
+    public boolean canCheck(){
+        return this.currentBet == this.dealer.highestBet;
+    }
 
+    public void check(){
+        // only computer can check
+        Game.addToLog(name + " checks ");
     }
 
     public void bet(int amount){
+        if (amount > bankroll)
+        {
+            amount = bankroll;
+        }
+
         this.currentBet += amount;
         this.bankroll -= amount;
         this.dealer.setHighestBet(this.currentBet);
         this.dealer.addPot(amount);
-        Game.log.add(new JLabel(name + " bets " + amount));
+
+        Game.addToLog(name + " bets " + amount);
         refreshBankrollText();
     }
 
     public void bet(){
-        int amount = (int)((Math.random()/10) * bankroll) ;
-        this.bankroll -= amount;
-        this.currentBet += amount;
-        this.dealer.setHighestBet(this.currentBet);
-        this.dealer.addPot(amount);
-
-        Game.log.add(new JLabel(name + " bets " + amount));
-        refreshBankrollText();
+        int amount = (int)(Math.random() * bankroll);
+        this.bet(amount);
     }
 
     public void call(){
-        int amount = this.currentBet - this.dealer.highestBet;
-        this.currentBet += amount;
+        int amount = this.dealer.highestBet - this.currentBet;
+        this.currentBet = this.dealer.highestBet;
+        this.bankroll -= amount;
         this.dealer.addPot(amount);
         refreshBankrollText();
 
-        Game.log.add(new JLabel(name + " calls " + amount));
-        playersDone = true;
+        Game.addToLog(name + " calls " + amount);
     }
 
     public void fold(){
-        playersDone = true;
+        this.isOutOfGame = true;
 
-        Game.log.add(new JLabel(name + " folds"));
-        this.loser = true;
+        Game.addToLog(name + " folds");
     }
 
     public void paintComponent(Graphics g) {
@@ -159,5 +179,15 @@ public class Player extends JPanel {
 
     public void revealHand(){
         this.hand.revealHand();
+    }
+
+    public int addWinnings(int winnings){
+        this.bankroll += winnings;
+        refreshBankrollText();
+        return this.bankroll;
+    }
+
+    public void resetCurrentBet(){
+        this.currentBet = 0;
     }
 }
