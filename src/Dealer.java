@@ -69,10 +69,9 @@ public class Dealer extends JPanel {
         this.communityCards.setText("");
     }
 
-//    public void resetPot(){
-//        this.potSize = 0;
-//        this.potLabel.setText("Pot \n" + potSize);
-//    }
+    public void resetPot(){
+        this.potSize = 0;
+    }
 
     public void paintComponent(Graphics g) {
         // create background

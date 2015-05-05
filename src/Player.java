@@ -11,7 +11,7 @@ import java.io.IOException;
 public class Player extends JPanel {
     private int currentBet;
     private BufferedImage image;
-    private String name;
+    public String name;
     public Hand hand;
     private int bankroll;
     public Dealer dealer;
@@ -84,11 +84,11 @@ public class Player extends JPanel {
         }
         else
         {
-            if (strengthOfHand <.30)
+            if (strengthOfHand <.20)
             {
                 fold();
             }
-            else if(strengthOfHand >= .30 && strengthOfHand < 2.0)
+            else if(strengthOfHand >= .20 && strengthOfHand < 2.0)
             {
                 call();
             }
@@ -130,7 +130,12 @@ public class Player extends JPanel {
 
     public void call(){
         int amount = this.dealer.highestBet - this.currentBet;
-        this.currentBet = this.dealer.highestBet;
+
+        if (amount > bankroll){
+            amount = bankroll;
+        }
+
+        this.currentBet += amount;
         this.bankroll -= amount;
         this.dealer.addPot(amount);
         refreshBankrollText();

@@ -38,7 +38,7 @@ public class Game extends JFrame   {
 
         this.table = new JPanel(new GridLayout(3, 3));
         createPlayers();
-        startGame();
+        startNewRound();
 
         add(this.table);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -67,13 +67,8 @@ public class Game extends JFrame   {
     }
 
 
-    public void startGame() {
-        startRound();
-    }
-
-    public void startRound() {
-
-        previousLog = log;
+    public void startNewRound() {
+        this.previousLog = log;
         log = new JPanel();
         log.setLayout(new BoxLayout(log, BoxLayout.PAGE_AXIS));
         // reset the deck, turn and dealer community cards
@@ -88,11 +83,14 @@ public class Game extends JFrame   {
         player.setHand(playerHand);
         computer.setHand(computerHand);
 
-        this.table.remove(7);
-        this.table.remove(6);
-        this.table.remove(5);
-        this.table.remove(4);
-        this.table.remove(3);
+        for(int i = 7; i > 2; i--){
+            this.table.remove(i);
+        }
+//        this.table.remove(7);
+//        this.table.remove(6);
+//        this.table.remove(5);
+//        this.table.remove(4);
+//        this.table.remove(3);
 
         this.table.add(playerHand);
         this.table.add(playerOptions);
@@ -103,6 +101,7 @@ public class Game extends JFrame   {
 //        computer.turn();
 
         this.gameOver = false;
+        takeAnte();
     }
 
 
@@ -113,6 +112,7 @@ public class Game extends JFrame   {
     }
 
     public void resetTurn(){
+        Game.addToLog("------------");
         for(Player x: this.players)
         {
             x.resetCurrentBet();
@@ -120,8 +120,36 @@ public class Game extends JFrame   {
             x.refreshBankrollText();
         }
 //        this.dealer.resetPot();
+        if (this.gameOver){
+            this.dealer.resetPot();
+        }
         this.dealer.resetHighestBet();
         this.dealer.refreshPotText();
+    }
+
+    public void checkGameEnd() {
+        // if everyone folded
+        if (dealer.potSize == 0){
+            int playerCount = this.players.length;
+            int playersOut = 0;
+            Player winner = this.player;
+
+            for(Player x: this.players)
+            {
+                if (x.bankrupt())
+                {
+                    playersOut += 1;
+                }
+                else {
+                    winner = x;
+                }
+            }
+
+            if (playersOut == playerCount - 1)
+            {
+                JOptionPane.showMessageDialog(null, winner.name + " has won!");
+            }
+        }
     }
 
     public void checkNoShowdownWin(){
@@ -141,13 +169,11 @@ public class Game extends JFrame   {
             }
         }
 
-        System.out.println(playerCount);
-        System.out.println(playersOut);
-
         if (playersOut == playerCount - 1)
         {
             winner.addWinnings(this.dealer.potSize);
             this.gameOver = true;
+            resetTurn();
         }
     }
 
@@ -166,16 +192,25 @@ public class Game extends JFrame   {
         }
         else if (playerScore >= computerScore)
         {
-            player.addWinnings(this.dealer.potSize/2);
+            player.addWinnings(this.dealer.potSize);
             Game.addToLog("Player wins");
         }
         else
         {
-            computer.addWinnings(this.dealer.potSize/2);
+            computer.addWinnings(this.dealer.potSize);
             Game.addToLog("Computer wins");
         }
 
         this.gameOver = true;
+    }
+
+    public void takeAnte(){
+        Game.addToLog("Adding antes");
+        Game.addToLog("------------");
+        for(Player x: this.players)
+        {
+            x.bet(50);
+        }
     }
 
     class ButtonListener implements ActionListener
@@ -183,10 +218,10 @@ public class Game extends JFrame   {
         public void actionPerformed (ActionEvent e)
         {
             if (turn == Turn.SUMMARY){
-                resetTurn();
-                startRound();
+                startNewRound();
                 return;
             }
+            resetTurn();
 
             switch(e.getActionCommand()){
                 case "Check":
@@ -213,13 +248,13 @@ public class Game extends JFrame   {
 
             if (gameOver)
             {
-                turn = Turn.RIVER;
+                Game.addToLog("Click any button for new round");
+                turn = Turn.SUMMARY;
             }
 
             // if players done, go to next turn
             switch (turn) {
                 case PREFLOP:
-                    resetTurn();
                     turn = Turn.FLOP;
 
                     Card card1 = deck.pop();
@@ -239,7 +274,6 @@ public class Game extends JFrame   {
                     computer.addCard(card3);
                     break;
                 case FLOP:
-                    resetTurn();
                     Card card4 = deck.pop();
                     dealer.addCommunityCard(card4);
                     player.addCard(card4);
@@ -248,43 +282,23 @@ public class Game extends JFrame   {
                     turn = Turn.TURN;
                     break;
                 case TURN:
-                    resetTurn();
                     Card card5 = deck.pop();
                     dealer.addCommunityCard(card5);
                     player.addCard(card5);
                     computer.addCard(card5);
 
                     turn = Turn.RIVER;
-                    computer.revealHand();
-
                     break;
                 case RIVER:
-                    resetTurn();
+                    computer.revealHand();
                     showDown();
-//                        Game.addToLog("Player has a " + player.evaluatedHand());
-//                        Game.addToLog("Computer has a " + computer.evaluatedHand());
 
-//                        int playerScore = player.handScore();
-//                        int computerScore = computer.handScore();
-//
-//                        if (playerScore == computerScore)
-//                        {
-//                            Game.addToLog("Tie");
-//                        }
-//                        else if (playerScore >= computerScore)
-//                        {
-//                            Game.addToLog("Player wins");
-//                        }
-//                        else
-//                        {
-//                            Game.addToLog("Computer wins");
-//                        }
-
-                    Game.addToLog("Click any button for new game");
+                    resetTurn();
                     turn = Turn.SUMMARY;
                     break;
             }
 
+            checkGameEnd();
         }
     }
 }
