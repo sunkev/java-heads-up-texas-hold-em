@@ -1,6 +1,9 @@
 /**
- * Created by brookeside on 5/3/15.
+ * Created by Kevin Sun on 5/1/15.
+ *
+ * A test class that tests the hand evaluator.
  */
+
 public class HandEvaluatorTest
 {
     public static void main(String[] args) {

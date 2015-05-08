@@ -1,5 +1,7 @@
 /**
- * Created by brookeside on 4/30/15.
+ * Created by Kevin Sun on 5/1/15.
+ *
+ * Runs a heads up texas hold'em poker game.
  */
 
 import javax.swing.*;
@@ -9,17 +11,16 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 public class Game extends JFrame   {
-    public Player player;
-    public Player computer;
-    public Player[] players;
-
-    public Dealer dealer;
-    public JPanel table;
+    private Player player;
+    private Player computer;
+    private Player[] players;
+    private Dealer dealer;
+    private JPanel table;
     private Deck deck;
     private Hand playerHand;
     private Hand computerHand;
-    public PlayerOptionPanel playerOptions;
-    public Turn turn;
+    private PlayerOptionPanel playerOptions;
+    private Turn turn;
     private static JPanel log = new JPanel();
     private JPanel previousLog;
     private boolean gameOver;
@@ -31,6 +32,11 @@ public class Game extends JFrame   {
     public static void main(String[] args) throws IOException {
         new Game();
     }
+
+    /**
+     * This constructor creates a game class. Controls all aspects of the game.
+     * Including creating the players JPanels and starting the turn system.
+     */
 
     public Game() throws IOException{
         setTitle("Texas Hold'em");
@@ -45,13 +51,17 @@ public class Game extends JFrame   {
         setVisible(true);
     }
 
-    public void createPlayers() throws IOException {
-        dealer = new Dealer("middle.jpg");
 
+    /**
+     * This method creates dealer, player and computer and adds them to table.
+     */
+
+    public void createPlayers() throws IOException {
+        // create JPanels and add them to table
+        dealer = new Dealer("middle.jpg");
         player = new Player("Player", "left_side.jpg", dealer);
         computer = new Player("Computer", "right_side.jpg", dealer);
         players = new Player[]{player, computer};
-
         playerOptions = new PlayerOptionPanel(new ButtonListener());
 
         this.table.add(player);
@@ -67,10 +77,17 @@ public class Game extends JFrame   {
     }
 
 
+    /**
+     * This method creates a new log, previous log, and hands. Then adds them to the table.
+     * It also takes an ante from the player's bankroll.
+     */
+
     public void startNewRound() {
+        //update the log panels
         this.previousLog = log;
         log = new JPanel();
         log.setLayout(new BoxLayout(log, BoxLayout.PAGE_AXIS));
+
         // reset the deck, turn and dealer community cards
         this.deck = new Deck();
         this.turn = Turn.PREFLOP;
@@ -83,33 +100,36 @@ public class Game extends JFrame   {
         player.setHand(playerHand);
         computer.setHand(computerHand);
 
+        // remove and re-add all the panels every new set of rounds
         for(int i = 7; i > 2; i--){
             this.table.remove(i);
         }
-//        this.table.remove(7);
-//        this.table.remove(6);
-//        this.table.remove(5);
-//        this.table.remove(4);
-//        this.table.remove(3);
 
         this.table.add(playerHand);
         this.table.add(playerOptions);
         this.table.add(computerHand);
         this.table.add(previousLog);
         this.table.add(log);
-//        player.turn();
-//        computer.turn();
 
         this.gameOver = false;
         takeAnte();
     }
 
+    /**
+     * Helper method that adds a JLabel to the current log JPanel
+     *
+     * @param text    A JLabel is created that has this text
+     */
 
     static public void addToLog(String text){
         JLabel label = new JLabel(text);
         label.setFont(new Font("Helvetica", Font.PLAIN, 10));
         log.add(label);
     }
+
+    /**
+     * Before each game reset all variables of the player and dealer
+     */
 
     public void resetTurn(){
         Game.addToLog("------------");
@@ -119,7 +139,6 @@ public class Game extends JFrame   {
             x.isOutOfGame = false;
             x.refreshBankrollText();
         }
-//        this.dealer.resetPot();
         if (this.gameOver){
             this.dealer.resetPot();
         }
@@ -127,8 +146,12 @@ public class Game extends JFrame   {
         this.dealer.refreshPotText();
     }
 
+    /**
+     * This method checks if there is a game winner
+     */
+
     public void checkGameEnd() {
-        // if everyone folded
+        // check if there is a game winner
         if (dealer.potSize == 0){
             int playerCount = this.players.length;
             int playersOut = 0;
@@ -145,15 +168,21 @@ public class Game extends JFrame   {
                 }
             }
 
+            // if winner exit program
             if (playersOut == playerCount - 1)
             {
                 JOptionPane.showMessageDialog(null, winner.name + " has won!");
+                System.exit(0);
             }
         }
     }
 
+    /**
+     * Check to see if a player has won through making other players fold
+     */
+
     public void checkNoShowdownWin(){
-        // if everyone folded
+        // check to see if win from folding
         int playerCount = this.players.length;
         int playersOut = 0;
         Player winner = this.player;
@@ -169,6 +198,7 @@ public class Game extends JFrame   {
             }
         }
 
+        // if winner, add to his winnings
         if (playersOut == playerCount - 1)
         {
             winner.addWinnings(this.dealer.potSize);
@@ -177,13 +207,21 @@ public class Game extends JFrame   {
         }
     }
 
+    /**
+     * Calculates the evaluated poker hands of all the players, and determines the winner.
+     */
+
     public void showDown(){
+        // determine which hand is better
         int playerScore = player.handScore();
         int computerScore = computer.handScore();
+
+        // add to log the evaluated hands
 
         Game.addToLog("Player has a " + player.evaluatedHand());
         Game.addToLog("Computer has a " + computer.evaluatedHand());
 
+        // determine round winner and reward him
         if (playerScore == computerScore)
         {
             player.addWinnings(this.dealer.potSize/2);
@@ -204,6 +242,10 @@ public class Game extends JFrame   {
         this.gameOver = true;
     }
 
+    /**
+     * Method takes 50 chips as an ante from players.
+     */
+
     public void takeAnte(){
         Game.addToLog("Adding antes");
         Game.addToLog("------------");
@@ -213,91 +255,111 @@ public class Game extends JFrame   {
         }
     }
 
+    /**
+     * Dealer deals a community card and the card is added to each player's hand.
+     */
+
+    public void dealCard(){
+
+        Card card1 = deck.pop();
+        for(Player x: this.players)
+        {
+            x.addCard(card1);
+        }
+        dealer.addCommunityCard(card1);
+    }
+
+    /**
+     * Method determines what happens on which turn.
+     */
+
+    public void progressTurn(){
+        // if players done, go to next turn
+        switch (turn) {
+            case PREFLOP:
+                turn = Turn.FLOP;
+                dealCard();
+                dealCard();
+                dealCard();
+                break;
+            case FLOP:
+                dealCard();
+
+                turn = Turn.TURN;
+                break;
+            case TURN:
+                dealCard();
+                turn = Turn.RIVER;
+                break;
+            case RIVER:
+                computer.revealHand();
+                showDown();
+
+                resetTurn();
+                turn = Turn.SUMMARY;
+                break;
+        }
+    }
+
+    /**
+     * Method that takes what button is pressed, and runs the corresponding code.
+     */
+
+    public void buttonClicked(String buttonStr){
+        switch(buttonStr){
+            case "Check":
+                computer.computerTurn();
+                checkNoShowdownWin();
+                break;
+            case "Bet":
+                player.bet(playerOptions.betFieldNumber());
+                computer.computerTurn();
+                checkNoShowdownWin();
+                break;
+            case "Call":
+                player.call();
+                checkNoShowdownWin();
+                break;
+            case "Fold":
+                player.fold();
+                checkNoShowdownWin();
+                break;
+            default:
+                System.out.println("Not working");
+                break;
+        }
+    }
+
+    /**
+     * Method passed to the buttons on the PlayerOptionsPanel
+     */
+
     class ButtonListener implements ActionListener
     {
         public void actionPerformed (ActionEvent e)
         {
+            // if last turn, restart the game
             if (turn == Turn.SUMMARY){
                 startNewRound();
                 return;
             }
+
             resetTurn();
 
-            switch(e.getActionCommand()){
-                case "Check":
-                    computer.computerTurn();
-                    checkNoShowdownWin();
-                    break;
-                case "Bet":
-                    player.bet(playerOptions.betFieldNumber());
-                    computer.computerTurn();
-                    checkNoShowdownWin();
-                    break;
-                case "Call":
-                    player.call();
-                    checkNoShowdownWin();
-                    break;
-                case "Fold":
-                    player.fold();
-                    checkNoShowdownWin();
-                    break;
-                default:
-                    System.out.println("Not working");
-                    break;
-            }
+            // give player and computer turns
+            buttonClicked(e.getActionCommand());
 
+            // add a summary round
             if (gameOver)
             {
                 Game.addToLog("Click any button for new round");
                 turn = Turn.SUMMARY;
             }
 
-            // if players done, go to next turn
-            switch (turn) {
-                case PREFLOP:
-                    turn = Turn.FLOP;
+            // go to next round
+            progressTurn();
 
-                    Card card1 = deck.pop();
-                    Card card2 = deck.pop();
-                    Card card3 = deck.pop();
-
-                    dealer.addCommunityCard(card1);
-                    dealer.addCommunityCard(card2);
-                    dealer.addCommunityCard(card3);
-
-                    player.addCard(card1);
-                    player.addCard(card2);
-                    player.addCard(card3);
-
-                    computer.addCard(card1);
-                    computer.addCard(card2);
-                    computer.addCard(card3);
-                    break;
-                case FLOP:
-                    Card card4 = deck.pop();
-                    dealer.addCommunityCard(card4);
-                    player.addCard(card4);
-                    computer.addCard(card4);
-
-                    turn = Turn.TURN;
-                    break;
-                case TURN:
-                    Card card5 = deck.pop();
-                    dealer.addCommunityCard(card5);
-                    player.addCard(card5);
-                    computer.addCard(card5);
-
-                    turn = Turn.RIVER;
-                    break;
-                case RIVER:
-                    computer.revealHand();
-                    showDown();
-
-                    resetTurn();
-                    turn = Turn.SUMMARY;
-                    break;
-            }
-
+            //check if game is over
             checkGameEnd();
         }
     }

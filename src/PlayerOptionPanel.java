@@ -3,8 +3,11 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 /**
- * Created by brookeside on 5/1/15.
+ * Created by Kevin Sun on 5/1/15.
+ *
+ * A JPanel that contains all the buttons the player can use.
  */
+
 public class PlayerOptionPanel extends JPanel {
     private JButton checkButton = new JButton("Check");
     private JButton betButton = new JButton("Bet");
@@ -13,6 +16,11 @@ public class PlayerOptionPanel extends JPanel {
     private JTextField betField = new JTextField(5);
     private JPanel buttons = new JPanel();
     private JPanel betting = new JPanel();
+
+    /**
+     * This constructor adds the actionlistener to all
+     * buttons. And then adds the button to the GUI
+     */
 
     public PlayerOptionPanel(ActionListener buttonListener){
         checkButton.addActionListener(buttonListener);
@@ -36,7 +44,21 @@ public class PlayerOptionPanel extends JPanel {
         add(betting, BorderLayout.SOUTH);
     }
 
+    /**
+     * This method get str value from betField
+     * and attempts to convert it to an int, or throws error
+     *
+     * @return          The int value of betField
+     */
+
     public int betFieldNumber(){
-        return Integer.valueOf(betField.getText());
+        try {
+            return Integer.valueOf(betField.getText());
+        }
+        catch (NumberFormatException e){
+            JOptionPane.showMessageDialog(null, "You need to enter a integer!");
+            System.exit(1);
+            return 0;
+        }
     }
 }
